@@ -796,6 +796,7 @@ public:
 			Assert(qctx->select_list());
 			std::vector<TSqlParser::Select_list_elemContext *> select_elems = qctx->select_list()->select_list_elem();
 
+            int diff_sum_len=0;
 			for (size_t i=0; i<select_elems.size(); ++i)
 			{
 				TSqlParser::Select_list_elemContext *elem = select_elems[i];
@@ -803,13 +804,17 @@ public:
 				{
 					/* rewrite "SELECT COL=expr" to "SELECT expr as "COL"" */
 					auto expr_elem = elem->expression_elem();
-
+                    
+                    int exp_len=(::getFullText(expr_elem->expression())).length();
+                    int start_index = expr_elem->expression()->start->getStartIndex();//9
+                    int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+                    
 					/* 1. remove "COL=" */
 					std::string orig_text = ::getFullText(expr_elem->column_alias());
-					mutator.add(expr_elem->column_alias()->start->getStartIndex(), orig_text, "");
+					mutator.add(expr_elem->column_alias()->start->getStartIndex()+diff_sum_len, orig_text, "");
 
 					orig_text = ::getFullText(elem->expression_elem()->EQUAL());
-					mutator.add(elem->expression_elem()->EQUAL()->getSymbol()->getStartIndex(), orig_text, "");
+					mutator.add(elem->expression_elem()->EQUAL()->getSymbol()->getStartIndex()+diff_sum_len, orig_text, "");
 
 					/* 2. append "AS COL" to the end of expr */
 					std::string repl_text(" AS ");
@@ -817,7 +822,9 @@ public:
 						repl_text += "\"" + ::getFullText(expr_elem->column_alias()) + "\"";
 					else
 						repl_text += ::getFullText(expr_elem->column_alias());
-					mutator.add(expr_elem->expression()->stop->getStopIndex()+1, "", repl_text);
+					
+					diff_sum_len += (exp_len - (stop_index - start_index + 1));
+					mutator.add(stop_index + diff_sum_len + 1 , "", repl_text);
 				}
 				else if ((elem->column_elem() && elem->column_elem()->as_column_alias()) ||
 				  (elem->expression_elem() && elem->expression_elem()->as_column_alias()))
@@ -826,6 +833,12 @@ public:
 					auto column_alias_as = ((elem->column_elem() && elem->column_elem()->as_column_alias()) ? elem->column_elem()->as_column_alias() : elem->expression_elem()->as_column_alias());
 					if (!column_alias_as->AS())
 					{
+					    auto expr_elem = elem->expression_elem();
+                      
+                        int exp_len=(::getFullText(expr_elem->expression())).length();
+                        int start_index = expr_elem->expression()->start->getStartIndex();//9
+                        int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+					    
 						std::string orig_text = ::getFullText(column_alias_as->column_alias());
 						std::string repl_text = std::string("AS ");
 
@@ -833,10 +846,17 @@ public:
 							repl_text += std::string("\"") + orig_text + "\"";
 						else
 							repl_text += orig_text;
-
-						mutator.add(column_alias_as->start->getStartIndex(), "", "AS ");
+                        
+                        diff_sum_len += (exp_len - (stop_index - start_index + 1));
+						mutator.add(column_alias_as->start->getStartIndex() + diff_sum_len, "", "AS ");
 					}
-				}
+				}else{
+                    auto expr_elem = elem->expression_elem();
+                    int exp_len=(::getFullText(expr_elem->expression())).length();
+                    int start_index = expr_elem->expression()->start->getStartIndex();//9
+                    int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+                    diff_sum_len += (exp_len - (stop_index - start_index + 1));
+                }
 			}
 		}
 
