@@ -796,7 +796,7 @@ public:
 			Assert(qctx->select_list());
 			std::vector<TSqlParser::Select_list_elemContext *> select_elems = qctx->select_list()->select_list_elem();
 
-            int diff_sum_len=0;
+            size_t diff_sum_len=0;
 			for (size_t i=0; i<select_elems.size(); ++i)
 			{
 				TSqlParser::Select_list_elemContext *elem = select_elems[i];
@@ -804,10 +804,10 @@ public:
 				{
 					/* rewrite "SELECT COL=expr" to "SELECT expr as "COL"" */
 					auto expr_elem = elem->expression_elem();
-                    
-                    int exp_len=(::getFullText(expr_elem->expression())).length();
-                    int start_index = expr_elem->expression()->start->getStartIndex();//9
-                    int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+					auto expr_elem_expression = expr_elem->expression();
+					size_t exp_len=(::getFullText(expr_elem_expression)).length();
+					size_t start_index = expr_elem_expression->start->getStartIndex();//9
+					size_t stop_index = expr_elem_expression->stop->getStopIndex();//11
                     
 					/* 1. remove "COL=" */
 					std::string orig_text = ::getFullText(expr_elem->column_alias());
@@ -834,10 +834,10 @@ public:
 					if (!column_alias_as->AS())
 					{
 					    auto expr_elem = elem->expression_elem();
-                      
-                        int exp_len=(::getFullText(expr_elem->expression())).length();
-                        int start_index = expr_elem->expression()->start->getStartIndex();//9
-                        int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+						auto expr_elem_expression = expr_elem->expression();
+						size_t exp_len=(::getFullText(expr_elem_expression)).length();
+						size_t start_index = expr_elem_expression->start->getStartIndex();//9
+						size_t stop_index = expr_elem_expression->stop->getStopIndex();//11
 					    
 						std::string orig_text = ::getFullText(column_alias_as->column_alias());
 						std::string repl_text = std::string("AS ");
@@ -850,11 +850,12 @@ public:
                         diff_sum_len += (exp_len - (stop_index - start_index + 1));
 						mutator.add(column_alias_as->start->getStartIndex() + diff_sum_len, "", "AS ");
 					}
-				}else{
+				}else if ( elem->expression_elem() ){
                     auto expr_elem = elem->expression_elem();
-                    int exp_len=(::getFullText(expr_elem->expression())).length();
-                    int start_index = expr_elem->expression()->start->getStartIndex();//9
-                    int stop_index = expr_elem->expression()->stop->getStopIndex();//11
+					auto expr_elem_expression = expr_elem->expression();
+					size_t exp_len=(::getFullText(expr_elem_expression)).length();
+					size_t start_index = expr_elem_expression->start->getStartIndex();//9
+					size_t stop_index = expr_elem_expression->stop->getStopIndex();//11
                     diff_sum_len += (exp_len - (stop_index - start_index + 1));
                 }
 			}
