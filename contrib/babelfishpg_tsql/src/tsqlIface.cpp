@@ -848,7 +848,7 @@ public:
 							repl_text += orig_text;
                         
                         diff_sum_len += (exp_len - (stop_index - start_index + 1));
-						mutator.add(column_alias_as->start->getStartIndex() + diff_sum_len, "", "AS ");
+//						mutator.add(column_alias_as->start->getStartIndex() + diff_sum_len, "", "AS ");
 					}
 				}else if ( elem->expression_elem() ){
                     auto expr_elem = elem->expression_elem();
