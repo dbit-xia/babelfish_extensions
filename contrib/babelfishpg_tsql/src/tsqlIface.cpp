@@ -812,12 +812,12 @@ public:
                     auto expr_elem = elem->expression_elem();
                     if (expr_elem) { //表达式
 
-                        auto expr_elem_expression = expr_elem->expression();
+                        auto expr_elem_expression = expr_elem->expression(); //c=[1],[1] c,[1] as c
                         std::string expression_str=::getFullText(expr_elem_expression);
 
                         if (expr_elem->EQUAL()) { //left alias
-                            auto left_alias = elem->expression_elem()->column_alias();
-                            std::string left_alias_str = ::getFullText(left_alias); //[c]=1,[c]=a
+                            auto left_alias = elem->expression_elem()->column_alias(); //[c]=1,[c]=a
+                            std::string left_alias_str = ::getFullText(left_alias);
 
                             /* rewrite "SELECT COL=expr" to "SELECT expr as "COL"" */
                             /* 1. remove "COL" */
@@ -855,8 +855,8 @@ public:
                             diff_sum_len += (real_len - (stop_index - start_index + 1));
 
                             if (expr_elem->as_column_alias()){
-                                auto right_alias = expr_elem->as_column_alias()->column_alias();
-                                std::string right_alias_str = ::getFullText(right_alias); //1 as [c],1 [c]
+                                auto right_alias = expr_elem->as_column_alias()->column_alias(); //1 as [c],1 [c]
+                                std::string right_alias_str = ::getFullText(right_alias);
 
                                 real_len = right_alias_str.length();
                                 start_index = right_alias->start->getStartIndex();
@@ -868,7 +868,7 @@ public:
                     }else if(elem->column_elem()){ //column right alias
                         if (elem->column_elem()->as_column_alias()){
                             auto right_alias = elem->column_elem()->as_column_alias()->column_alias(); //a as [c],a [c]
-                            std::string right_alias_str = ::getFullText(right_alias); //a [as c],a [c]
+                            std::string right_alias_str = ::getFullText(right_alias);
 
                             real_len = right_alias_str.length();
                             start_index = right_alias->start->getStartIndex();
