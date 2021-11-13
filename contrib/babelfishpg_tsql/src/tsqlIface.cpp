@@ -810,7 +810,7 @@ public:
                     size_t stop_index = 0;
 
                     auto expr_elem = elem->expression_elem();
-                    if (expr_elem) { //表达式
+                    if (expr_elem) { //expression
 
                         auto expr_elem_expression = expr_elem->expression(); //c=[1],[1] c,[1] as c
                         std::string expression_str=::getFullText(expr_elem_expression);
