@@ -825,14 +825,14 @@ public:
                             mutator.add(left_alias->start->getStartIndex() + diff_sum_len, orig_text,
                                         "");
 
-                            /*remove =*/
-                            mutator.add(expr_elem->EQUAL()->getSymbol()->getStartIndex() + diff_sum_len,
-                                        "=", "");
-
                             real_len = left_alias_str.length();
                             start_index = left_alias->start->getStartIndex();
                             stop_index = left_alias->stop->getStopIndex();
                             diff_sum_len += (real_len - (stop_index - start_index + 1));
+
+                            /*remove =*/
+                            mutator.add(expr_elem->EQUAL()->getSymbol()->getStartIndex() + diff_sum_len,
+                                        "=", "");
 
                             /* 2. append "AS COL" to the end of expr */
                             std::string repl_text(" AS ");
