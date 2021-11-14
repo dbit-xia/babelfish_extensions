@@ -811,9 +811,10 @@ public:
 
                     auto expr_elem = elem->expression_elem();
                     if (expr_elem) { //expression
-
+//                        fputs("expression#",fp);
                         auto expr_elem_expression = expr_elem->expression(); //c=[1],[1] c,[1] as c
                         std::string expression_str=::getFullText(expr_elem_expression);
+//                        fputs(expression_str.data(),fp);
 
                         if (expr_elem->EQUAL()) { //left alias
                             auto left_alias = elem->expression_elem()->column_alias(); //[c]=1,[c]=a
@@ -849,6 +850,10 @@ public:
                             mutator.add(stop_index + diff_sum_len + 1, "", repl_text);
                         }else{ //right alias
 
+//                            if (expression_str == "system_user"){
+//                                mutator.add(expr_elem_expression->start->getStartIndex() + diff_sum_len, "system_user",
+//                                            "'system_user'");
+//                            }
                             real_len = expression_str.length();
                             start_index = expr_elem_expression->start->getStartIndex();
                             stop_index = expr_elem_expression->stop->getStopIndex();
@@ -872,6 +877,9 @@ public:
                         }
 
                     }else if(elem->column_elem()){ //column right alias
+//                        fputs("column#",fp);
+//                        fputs((::getFullText(elem->column_elem()->full_column_name())).data(),fp);//[a] c,[a] as c
+
                         if (elem->column_elem()->as_column_alias()){
                             auto right_alias = elem->column_elem()->as_column_alias()->column_alias(); //a as [c],a [c]
                             std::string right_alias_str = ::getFullText(right_alias);
