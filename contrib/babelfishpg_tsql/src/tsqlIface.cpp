@@ -858,6 +858,12 @@ public:
                                 auto right_alias = expr_elem->as_column_alias()->column_alias(); //1 as [c],1 [c]
                                 std::string right_alias_str = ::getFullText(right_alias);
 
+                                /* if AS is missing, add it. */
+                                if (!(expr_elem->as_column_alias()->AS()) && (right_alias_str[0]=='\'')) {
+                                    mutator.add(right_alias->start->getStartIndex() + diff_sum_len, "",
+                                                "AS ");
+                                }
+
                                 real_len = right_alias_str.length();
                                 start_index = right_alias->start->getStartIndex();
                                 stop_index = right_alias->stop->getStopIndex();
@@ -869,6 +875,12 @@ public:
                         if (elem->column_elem()->as_column_alias()){
                             auto right_alias = elem->column_elem()->as_column_alias()->column_alias(); //a as [c],a [c]
                             std::string right_alias_str = ::getFullText(right_alias);
+
+                            /* if AS is missing, add it. */
+                            if (!(elem->column_elem()->as_column_alias()->AS()) && (right_alias_str[0]=='\'')) {
+                                mutator.add(right_alias->start->getStartIndex() + diff_sum_len, "",
+                                            "AS ");
+                            }
 
                             real_len = right_alias_str.length();
                             start_index = right_alias->start->getStartIndex();
