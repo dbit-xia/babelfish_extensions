@@ -10,6 +10,10 @@ void _PG_init(void);
 void
 _PG_init(void)
 {
+    FILE *fp = NULL;
+    fp = fopen("/tmp/tsqlHandler_PG_init.txt", "a");
+    fputs("\nfopen",fp);
+    fclose(fp);
   /*
    * Do initialization here
    */

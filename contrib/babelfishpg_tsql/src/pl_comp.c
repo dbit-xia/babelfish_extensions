@@ -140,6 +140,23 @@ static void delete_function(PLtsql_function *func);
 extern Portal ActivePortal;
 extern bool pltsql_function_parse_error_transpose(const char* prosrc);
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-pl_comp-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 /* ----------
  * pltsql_compile		Make an execution tree for a PL/tsql function.
  *
@@ -286,6 +303,7 @@ do_compile(FunctionCallInfo fcinfo,
 		   PLtsql_func_hashkey *hashkey,
 		   bool forValidator)
 {
+    log("do_compile");
 	Form_pg_proc procStruct = (Form_pg_proc) GETSTRUCT(procTup);
 	bool		is_dml_trigger = CALLED_AS_TRIGGER(fcinfo);
 	bool		is_event_trigger = CALLED_AS_EVENT_TRIGGER(fcinfo);
@@ -878,6 +896,7 @@ do_compile(FunctionCallInfo fcinfo,
 	 */
 	if (pltsql_use_antlr)
 	{
+        log("pltsql_use_antlr=true");
 		ANTLR_result result = antlr_parser_cpp(proc_source);
 
 		if (result.success)
@@ -892,6 +911,7 @@ do_compile(FunctionCallInfo fcinfo,
 	}
 	else
 	{
+        log("pltsql_use_antlr=false");
 		parse_rc = pltsql_yyparse();
 	}
 

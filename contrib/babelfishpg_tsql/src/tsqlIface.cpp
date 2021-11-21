@@ -326,6 +326,23 @@ void PLtsql_expr_query_mutator::add(int antlr_pos, std::string orig_text, std::s
 	m.emplace(std::make_pair(offset, std::make_pair(orig_text, repl_text)));
 }
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-tsqllface-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 void PLtsql_expr_query_mutator::run()
 {
 	StringInfoData ds;
@@ -397,11 +414,13 @@ public:
 		  parser(p),
 		  stream(s)
     {
+        log("tsqlBuilder");
 		rootInitializers = NIL;
     }
 
 	~tsqlBuilder()
 	{
+        log("~tsqlBuilder");
 		//		ListCell *s;
 		
 		//		foreach(s, rootInitializers)
@@ -744,6 +763,8 @@ public:
 
 	void exitDml_statement(TSqlParser::Dml_statementContext *ctx) override
 	{
+        log("exitDml_statement");
+
 		PLtsql_stmt_execsql *stmt = (PLtsql_stmt_execsql *) getPLtsql_fragment(ctx);
 		Assert(stmt);
 
@@ -796,9 +817,7 @@ public:
 			Assert(qctx->select_list());
 			std::vector<TSqlParser::Select_list_elemContext *> select_elems = qctx->select_list()->select_list_elem();
 
-//            FILE *fp = NULL;
-//
-//            fp = fopen("/tmp/test.txt", "a");
+            log("exitDml_statement - ctx.select_statement_standalone");
 
             try {
                 size_t diff_sum_len = 0;
@@ -902,6 +921,7 @@ public:
 //                fprintf(fp, "error\n");
             }
 
+//            log("\n");
 //            fclose(fp);
 
 		}
@@ -1430,6 +1450,9 @@ class MyParserErrorListener: public antlr4::BaseErrorListener
 ANTLR_result
 antlr_parser_cpp(const char *sourceText)
 {
+
+    log("antlr_parser_cpp");
+
 	ANTLR_result result;
 
 	// special handling for empty sourceText

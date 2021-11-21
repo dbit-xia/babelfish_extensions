@@ -43,6 +43,23 @@ static SeqTableIdentityData *last_used_seq_identity = NULL;
 
 static Oid get_table_identity(Oid tableOid);
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-pltsql_identity-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 PG_FUNCTION_INFO_V1(get_identity_param);
 
 /*
@@ -56,6 +73,7 @@ get_identity_param(PG_FUNCTION_ARGS)
 	text		*optionname = PG_GETARG_TEXT_PP(1);
 	int			 prev_sql_dialect = sql_dialect;
 
+    log("get_identity_param -> SQL_DIALECT_TSQL");
 	sql_dialect = SQL_DIALECT_TSQL;
  
 	PG_TRY();
@@ -131,6 +149,7 @@ get_identity_current(PG_FUNCTION_ARGS)
 	int			prev_sql_dialect = sql_dialect;
 	char		*cur_db_name;
 
+    log("get_identity_current -> SQL_DIALECT_TSQL");
 	sql_dialect = SQL_DIALECT_TSQL;
 
 	PG_TRY();
@@ -164,6 +183,7 @@ get_identity_current(PG_FUNCTION_ARGS)
 		PG_CATCH();
 		{
 			FlushErrorState();
+            log("PG_CATCH -> SQL_DIALECT_TSQL");
 			sql_dialect = SQL_DIALECT_TSQL;
 		}
 		PG_END_TRY();

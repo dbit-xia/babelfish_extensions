@@ -45,14 +45,37 @@ static pre_transform_target_entry_hook_type prev_pre_transform_target_entry_hook
 static tle_name_comparison_hook_type prev_tle_name_comparison_hook = NULL;
 static resolve_target_list_unknowns_hook_type prev_resolve_target_list_unknowns_hook = NULL;
 
+static void
+log2(char *text,const char *text2) {
+//    FILE *fp = NULL;
+//    fp = fopen("/tmp/test.txt", "a");
+//    fputs("ext-hooks-", fp);
+//    fputs(text, fp);
+    if (text2 != NULL) {
+//        fputs(text2,fp);
+        ereport(WARNING, errmsg(text));
+        ereport(WARNING, errmsg(text2));
+    } else {
+        ereport(WARNING, errmsg(text));
+    }
+//    fputs("\n", fp);
+//    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 /*****************************************
  * 			Install / Uninstall
  *****************************************/
 void
 InstallExtendedHooks(void)
 {
-	if (IsExtendedCatalogHook)
-		PrevIsExtendedCatalogHook = IsExtendedCatalogHook;
+	if (IsExtendedCatalogHook){
+        log("IsExtendedCatalogHook");
+        PrevIsExtendedCatalogHook = IsExtendedCatalogHook;
+    }
 	IsExtendedCatalogHook = &IsPLtsqlExtendedCatalog;
 
 	assign_object_access_hook_drop_role();
@@ -565,8 +588,14 @@ static void
 pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 									   ParseExprKind exprKind)
 {
-	if (prev_pre_transform_target_entry_hook)
-		(*prev_pre_transform_target_entry_hook) (res, pstate, exprKind);
+
+    log("pre_transform_target_entry");
+
+	if (prev_pre_transform_target_entry_hook){
+        log("pre_transform_target_entry-prev_pre_transform_target_entry_hook");
+        (*prev_pre_transform_target_entry_hook) (res, pstate, exprKind);
+    }
+
 
 	/* In the TSQL dialect construct an AS clause for each target list
 	 * item that is a column using the capitalization from the sourcetext.
@@ -574,13 +603,16 @@ pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 	if (sql_dialect == SQL_DIALECT_TSQL &&
 		exprKind == EXPR_KIND_SELECT_TARGET)
 	{
+        log("pre_transform_target_entry - SQL_DIALECT_TSQL");
 		int alias_len = 0;
 		const char *colname_start;
 		const char *identifier_name = NULL;
 
+
 		if (res->name == NULL && res->location != -1 &&
 			IsA(res->val, ColumnRef))
 		{
+            log("pre_transform_target_entry - name==null");
 			ColumnRef *cref = (ColumnRef *) res->val;
 
 			/* If no alias is specified on a ColumnRef, then
@@ -591,6 +623,7 @@ pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 				IsA(linitial(cref->fields), String))
 			{
 				identifier_name = strVal(linitial(cref->fields));
+                log("pre_transform_target_entry - isA");
 				alias_len = strlen(identifier_name);
 				colname_start = pstate->p_sourcetext + res->location;
 			}
@@ -598,12 +631,16 @@ pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 		else if (res->name != NULL && res->name_location != -1)
 		{
 			identifier_name = res->name;
+
 			alias_len = strlen(res->name);
 			colname_start = pstate->p_sourcetext + res->name_location;
+            log("pre_transform_target_entry - name!=null");
+            log2("pre_transform_target_entry - colname_start=",colname_start);
 		}
 
 		if (alias_len > 0)
 		{
+            log("pre_transform_target_entry - alias_len");
 			char *alias = palloc0(alias_len + 1);
 			bool dq = *colname_start == '"';
 			bool sqb = *colname_start == '[';
@@ -646,6 +683,7 @@ pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 			}
 			else
 			{
+                log("pre_transform_target_entry - dq||sq - else");
 				colname_end = colname_start + alias_len;
 				memcpy(alias, colname_start, alias_len);
 			}
@@ -659,20 +697,31 @@ pre_transform_target_entry(ResTarget *res, ParseState *pstate,
 			     is_identifier_char(*colname_end)))
 
 			{
+                log("pre_transform_target_entry - !closing_quote_reached");
 				memcpy(alias+(NAMEDATALEN-1)-32,
 				       identifier_name+(NAMEDATALEN-1)-32,
 				       32);
 				alias[NAMEDATALEN] = '\0';
 			}
 
-			res->name = alias;
+//			res->name = "aaa";
+//            res->indirection="123";
+//            res->val="123";
+//            res->val=123;
+//            log("#7");
+            log2("pre_transform_target_entry - alias=",alias);
 		}
 	}
+//    fclose(fp);
+
+//    InstallExtendedHooks();
+//    UninstallExtendedHooks();
 }
 
 static bool
 tle_name_comparison(const char *tlename, const char *identifier)
 {
+    log("tle_name_comparison");
 	if (sql_dialect == SQL_DIALECT_TSQL)
 	{
 		int tlelen = strlen(tlename);

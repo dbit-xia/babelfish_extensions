@@ -39,6 +39,23 @@ extern void read_param_def(InlineCodeBlockArgs * args, const char *paramdefstr);
 extern int execute_batch(PLtsql_execstate *estate, char *batch, InlineCodeBlockArgs *args, List *params);
 extern PLtsql_execstate *get_current_tsql_estate(void);
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-procedures-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 Datum
 sp_unprepare(PG_FUNCTION_ARGS)
 {
@@ -319,6 +336,7 @@ sp_describe_undeclared_parameters_internal(PG_FUNCTION_ARGS)
 
 		/* Next, pass the ANTLR-parsed batch to the backend parser */
 		sql_dialect_value_old = sql_dialect;
+        log("->SQL_DIALECT_TSQL");
 		sql_dialect = SQL_DIALECT_TSQL;
 		raw_parsetree_list = pg_parse_query(parsedbatch);
 		if (list_length(raw_parsetree_list) != 1)

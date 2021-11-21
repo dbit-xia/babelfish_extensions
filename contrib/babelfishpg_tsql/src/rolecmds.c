@@ -58,6 +58,23 @@ static void drop_bbf_authid_login_ext(ObjectAccessType access,
 										void *arg);
 static void grant_guests_to_login(const char *login);
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-rolecmds-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 void
 assign_object_access_hook_drop_role()
 {
@@ -611,6 +628,7 @@ Datum drop_all_logins(PG_FUNCTION_ARGS)
 	prev_current_user = GetUserNameFromId(GetUserId(), false);
 	SetConfigOption("role", "sysadmin", PGC_SUSET, PGC_S_DATABASE_USER);
 
+    log("drop_all_logins -> SQL_DIALECT_TSQL");
 	sql_dialect = SQL_DIALECT_TSQL;
 
 	while (rolname_list != NIL) {

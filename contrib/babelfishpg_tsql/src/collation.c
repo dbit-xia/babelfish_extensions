@@ -1090,12 +1090,32 @@ lookup_like_ilike_table(Oid opno)
 	return like_ilike_table[hinfo->persist_id];
 }
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-collation-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 /* transform LIKE to ILIKE for any ci_as babelfish collation
  */
 Node* pltsql_like_ilike_transformer(PlannerInfo *root,
                                     Node *expr,
                                     int kind)
 {
+
+    log("pltsql_like_ilike_transformer");
+
     /*
     * Fall out quickly if expression is empty.
     */

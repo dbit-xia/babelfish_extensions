@@ -213,6 +213,24 @@ PreCreateCollation_hook_type prev_PreCreateCollation_hook = NULL;
 TranslateCollation_hook_type prev_TranslateCollation_hook = NULL;
 
 static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-pl_handler-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
+
+static void
 assign_identity_insert(const char *newval, void *extra)
 {
         if (strcmp(newval, "") != 0)
@@ -380,11 +398,20 @@ assign_identity_insert(const char *newval, void *extra)
 static void
 pltsql_pre_parse_analyze(ParseState *pstate, RawStmt *parseTree)
 {
-	if (prev_pre_parse_analyze_hook)
-	  prev_pre_parse_analyze_hook(pstate, parseTree);
 
-	if (sql_dialect != SQL_DIALECT_TSQL)
-		return;
+	if (prev_pre_parse_analyze_hook){
+        log("pltsql_pre_parse_analyze=true");
+        prev_pre_parse_analyze_hook(pstate, parseTree);
+    }else{
+        log("pltsql_pre_parse_analyze=false");
+    }
+
+
+	if (sql_dialect != SQL_DIALECT_TSQL){
+        log("pltsql_pre_parse_analyze !SQL_DIALECT_TSQL");
+        return;
+    }
+
 
 	if (enable_schema_mapping())
 		rewrite_object_refs(parseTree->stmt);
@@ -2141,6 +2168,7 @@ pltsql_truncate_identifier_func(PG_FUNCTION_ARGS)
 	PG_RETURN_TEXT_P(cstring_to_text(name));
 }
 
+
 /*
  * _PG_init()			- library load-time initialization
  *
@@ -2149,13 +2177,18 @@ pltsql_truncate_identifier_func(PG_FUNCTION_ARGS)
 void
 _PG_init(void)
 {
+
+    log("_PG_init");
+
 	/* Be sure we do initialization only once (should be redundant now) */
 	static bool inited = false;
 	FunctionCallInfo fcinfo  = NULL;  /* empty interface */
 	Tsql_collation_callbacks **coll_cb_ptr;
 	
-	if (inited)
-		return;
+	if (inited){
+        log("_PG_init already inited");
+        return;
+    }
 
 	pg_bindtextdomain(TEXTDOMAIN);
 
@@ -2275,8 +2308,17 @@ _PG_init(void)
 		find_rendezvous_variable("PLtsql_protocol_plugin");
 
 	/* If a protocol extension is loaded, initialize the inline handler. */
+
+    if (sql_dialect == SQL_DIALECT_TSQL){
+        log("SQL_DIALECT_TSQL");
+    }
+    if (sql_dialect == SQL_DIALECT_PG){
+        log("SQL_DIALECT_PG");
+    }
+
 	if (*pltsql_protocol_plugin_ptr)
 	{
+        log("pltsql_protocol_plugin_ptr=true");
 		(*pltsql_protocol_plugin_ptr)->sql_batch_callback = &pltsql_inline_handler;
 		(*pltsql_protocol_plugin_ptr)->sp_executesql_callback = &pltsql_inline_handler;
         (*pltsql_protocol_plugin_ptr)->sp_prepare_callback = &sp_prepare;
@@ -2308,7 +2350,9 @@ _PG_init(void)
 		(*pltsql_protocol_plugin_ptr)->pltsql_get_errdata = &pltsql_get_errdata;
 		(*pltsql_protocol_plugin_ptr)->pltsql_get_database_oid = &get_db_id;
 		(*pltsql_protocol_plugin_ptr)->pltsql_get_login_default_db = &get_login_default_db;
-	}
+	}else{
+        log("pltsql_protocol_plugin_ptr=false");
+    }
 
 	*pltsql_config_ptr = &myConfig;
 
@@ -2371,6 +2415,7 @@ _PG_init(void)
 	truncate_identifier_hook = pltsql_truncate_identifier;
 	cstr_to_name_hook = pltsql_cstr_to_name;
 
+    log("InstallExtendedHooks");
 	InstallExtendedHooks();
 
 	prev_guc_push_old_value_hook = guc_push_old_value_hook;
@@ -2691,6 +2736,7 @@ pltsql_inline_handler(PG_FUNCTION_ARGS)
 	if (nargs > 1)
 		codeblock_args = (InlineCodeBlockArgs *) DatumGetPointer(PG_GETARG_DATUM(1));
 
+    log("pltsql_inline_handler -> SQL_DIALECT_TSQL");
 	sql_dialect = SQL_DIALECT_TSQL;
 	
 	/*

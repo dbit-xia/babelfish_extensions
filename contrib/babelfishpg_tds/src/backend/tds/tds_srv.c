@@ -124,6 +124,7 @@ pe_fin(void)
 static void
 pe_listen_init(void)
 {
+//    log("pe_listen_init");
 	pe_create_server_ports();
 }
 
@@ -145,12 +146,30 @@ pe_close(pgsocket server_fd)
 	StreamClose(server_fd);
 }
 
+static void
+log2(const char *text,const char *text2){
+    FILE *fp = NULL;
+    fp = fopen("/tmp/test.txt", "a");
+    fputs("ext-tds_srv-",fp);
+    fputs(text,fp);
+    if (text2 != NULL){
+        fputs(text2,fp);
+    }
+    fputs("\n",fp);
+    fclose(fp);
+}
+static void
+log(const char *text) {
+    log2(text, NULL);
+}
+
 /*
  * pe_init - equivalent of pq_init
  */
 static void
 pe_tds_init(void)
 {
+    log("pe_tds_init");
 	PLtsql_protocol_plugin **pltsql_plugin_handler_ptr_tmp;
 
 	/* This is client backend */
